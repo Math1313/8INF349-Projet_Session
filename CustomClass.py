@@ -23,3 +23,27 @@ class Product(db.Model):
 
     class Meta:
         database = db
+
+
+class Order(db.Model):
+    id = IntegerField(primary_key=True)
+    total_price = DoubleField()
+    total_price_tax = DoubleField()
+    credit_card = CharField()
+    shipping_information = CharField()
+    paid = BooleanField()
+    transaction = CharField()
+    shipping_price = DoubleField()
+
+    class Meta:
+        database = db
+
+
+class ProductOrder(db.Model):
+    id = IntegerField(primary_key=True)
+    product = IntegerField()
+    order = IntegerField()
+    quantity = IntegerField()
+
+    class Meta:
+        database = db
