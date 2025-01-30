@@ -1,6 +1,6 @@
 # 8INF349-Projet_Session
 Projet de session du cours de Technologies Web Avancées - 8INF349
-## Environment Setup
+## 🐍 Environment Setup
 ### 1. Install Python 3.13
 ### 2. Create virtual environment
 ```bash
@@ -20,7 +20,7 @@ Windows:
 pip install -r requirements.txt
 ```
 
-## Execute API
+## 🚀 Execute API
 ### Create Database
 Linux:
 ```bash
@@ -39,7 +39,7 @@ Windows:
 ```powershell
 set FLASK_DEBUG=True && set FLASK_APP=inf349 && flask run
 ```
-## 🚀 API Documentation
+## 📂 API Documentation
 
 ### Base URL
 ```
