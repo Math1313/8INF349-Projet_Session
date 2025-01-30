@@ -1,7 +1,7 @@
 # inf349.py
 
-from flask import Flask, jsonify
-from CustomClass import Product, Order
+from flask import Flask, request, jsonify
+from CustomClass import Product, Order, ProductOrder
 import create_database
 
 app = Flask(__name__)
@@ -47,12 +47,36 @@ def get_all_products():
 
 @app.route('/order', methods=['POST'])
 def create_order():
-    # Créer une commande
-    order = Order.create(
-        product=1,
-        quantity=2,
-        total_price=20.0
-    )
+    try:
+        data = request.get_json()
+        product_data = data.get('product')
 
-    # Retourner un message de succès
-    return jsonify({"message": "Order created successfully"})
+        if not product_data or not product_data.get('id') or not product_data.get('quantity'):
+            return jsonify({"errors": {
+                "product": {
+                    "code": "missing_fields",
+                    "name": "La création d'une commande nécessite un produit."
+                }
+            }}), 422
+
+        try:
+            Product.get(Product.id == product_data.get('id'))
+        except Exception:
+            return jsonify({"errors": {
+                "product": {
+                    "code": "not_found",
+                    "name": "Le produit n'existe pas."
+                }
+            }}), 422
+
+        order = Order.create()
+
+        product_order = ProductOrder.create(
+            order=order, product=product_data.get('id'),
+            quantity=product_data.get('quantity'))
+
+        # TODO: RETOURNER LA ROUTE DE LA NOUVELLE COMMANDE. (Ex: /order/<id_commande>)
+        return f"ID_COMMANDE: {product_order.id}", 302
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500

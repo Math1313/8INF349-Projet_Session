@@ -1,5 +1,6 @@
 
 from peewee import (
+    ForeignKeyField,
     SqliteDatabase,
     IntegerField,
     CharField,
@@ -27,13 +28,13 @@ class Product(db.Model):
 
 class Order(db.Model):
     id = IntegerField(primary_key=True)
-    total_price = DoubleField()
-    total_price_tax = DoubleField()
-    credit_card = CharField()
-    shipping_information = CharField()
-    paid = BooleanField()
-    transaction = CharField()
-    shipping_price = DoubleField()
+    total_price = DoubleField(null=True)
+    total_price_tax = DoubleField(null=True)
+    credit_card = CharField(null=True)
+    shipping_information = CharField(null=True)
+    paid = BooleanField(null=True)
+    transaction = CharField(null=True)
+    shipping_price = DoubleField(null=True)
 
     class Meta:
         database = db
@@ -41,8 +42,8 @@ class Order(db.Model):
 
 class ProductOrder(db.Model):
     id = IntegerField(primary_key=True)
-    product = IntegerField()
-    order = IntegerField()
+    order = ForeignKeyField(Order, backref='product_orders')
+    product = ForeignKeyField(Product, backref='orders')
     quantity = IntegerField()
 
     class Meta:
