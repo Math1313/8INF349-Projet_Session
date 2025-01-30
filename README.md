@@ -26,10 +26,18 @@ Linux:
 ```bash
 FLASK_DEBUG=True FLASK_APP=inf349 flask init-db
 ```
+Windows:
+```powershell
+set FLASK_DEBUG=True && set FLASK_APP=inf349 && flask init-db
+```
 ### Launch Flask App
 Linux:
 ```bash
 FLASK_DEBUG=True FLASK_APP=inf349 flask run
+```
+Windows:
+```powershell
+set FLASK_DEBUG=True && set FLASK_APP=inf349 && flask run
 ```
 ## 🚀 API Documentation
 
