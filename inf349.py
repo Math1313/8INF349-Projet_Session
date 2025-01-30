@@ -45,12 +45,15 @@ def get_all_products():
     return jsonify(products_list)
 
 
+# Route pour récupérer un produit par son ID
 @app.route('/order', methods=['POST'])
 def create_order():
     try:
+        # Récupérer les données JSON envoyées par le client
         data = request.get_json()
         product_data = data.get('product')
 
+        # Vérifier si les données sont valides (présence des champs)
         if not product_data or not product_data.get('id') or not product_data.get('quantity'):
             return jsonify({"errors": {
                 "product": {
@@ -59,9 +62,11 @@ def create_order():
                 }
             }}), 422
 
+        # Vérifier si le produit existe dans la base de données
         try:
             Product.get(Product.id == product_data.get('id'))
         except Exception:
+            # Retourner une erreur si le produit n'existe pas
             return jsonify({"errors": {
                 "product": {
                     "code": "not_found",
@@ -69,8 +74,8 @@ def create_order():
                 }
             }}), 422
 
+        # Créer une nouvelle commande et une table de jonction avec le produit
         order = Order.create()
-
         product_order = ProductOrder.create(
             order=order, product=product_data.get('id'),
             quantity=product_data.get('quantity'))
