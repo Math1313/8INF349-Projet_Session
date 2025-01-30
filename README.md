@@ -20,12 +20,13 @@ Windows:
 pip install -r requirements.txt
 ```
 
-## Create Database
+## Execute API
+### Create Database
 Linux:
 ```bash
 FLASK_DEBUG=True FLASK_APP=inf349 flask init-db
 ```
-## Launch Flask App
+### Launch Flask App
 Linux:
 ```bash
 FLASK_DEBUG=True FLASK_APP=inf349 flask run
