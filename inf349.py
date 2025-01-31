@@ -84,6 +84,8 @@ def create_order():
             }}), 422
 
         # Créer une nouvelle commande et une table de jonction avec le produit
+        # TODO: Créer la nouvelle commande avec les paramètres nécessaires
+        # total_price, total_price_tax, paid
         order = Order.create()
         product_order = ProductOrder.create(
             order=order, product=product_data.get('id'),
