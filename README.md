@@ -92,18 +92,19 @@ POST /order
 
 **Response** `302 Found`
 ```
-/order/:id
+Location: /order/:id
 ```
 
 ### Status Codes
-Modify this section to adapt to our project
 
 | Status Code | Description |
 |-------------|-------------|
 | 200 | OK - Request succeeded |
 | 201 | Created - Resource created successfully |
+| 302 | Found - Resource found successfully |
 | 400 | Bad Request - Invalid parameters |
 | 401 | Unauthorized - Authentication required |
 | 403 | Forbidden - Insufficient permissions |
 | 404 | Not Found - Resource not found |
+| 422 | Unprocessable Entity - Entity cannot be processed |
 | 500 | Internal Server Error - Server error |

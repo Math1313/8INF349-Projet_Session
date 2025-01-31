@@ -42,7 +42,7 @@ def get_all_products():
     ]
 
     # Retourner les données en JSON
-    return jsonify(products_list)
+    return jsonify(products_list), 200
 
 
 # Route pour récupérer un produit par son ID
@@ -64,7 +64,16 @@ def create_order():
 
         # Vérifier si le produit existe dans la base de données
         try:
-            Product.get(Product.id == product_data.get('id'))
+            product = Product.get(Product.id == product_data.get('id'))
+            # Vérifier si le produit est en inventaire
+            print(product.in_stock)
+            if not product.in_stock:
+                return jsonify({"errors": {
+                    "product": {
+                        "code": "out-of-inventory",
+                        "name": "Le produit demandé n'est pas en inventaire."
+                    }
+                }}), 422
         except Exception:
             # Retourner une erreur si le produit n'existe pas
             return jsonify({"errors": {
@@ -109,7 +118,7 @@ def get_specific_product(id):
                 },
                 "shipping_price": order.shipping_price
             }
-            
+
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
