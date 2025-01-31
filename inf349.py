@@ -80,8 +80,36 @@ def create_order():
             order=order, product=product_data.get('id'),
             quantity=product_data.get('quantity'))
 
-        # TODO: RETOURNER LA ROUTE DE LA NOUVELLE COMMANDE. (Ex: /order/<id_commande>)
-        return f"ID_COMMANDE: {product_order.id}", 302
+        return f"Location: /order/{product_order.id}", 302
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/order/<int:id>', methods=['GET'])
+def get_specific_product(id):
+    try:
+        product_order = ProductOrder.get(ProductOrder.order_id == id)
+        order = Order.get(Order.id == product_order.order_id)
+        return jsonify({
+            "order":
+            {
+                "id": order.id,
+                "total_price": order.total_price,
+                "total_price_tax": order.total_price_tax,
+                "email": "null",
+                "credit_card": {},
+                "shipping_information": {},
+                "paid": order.paid,
+                "transaction": {},
+                "product":
+                {
+                    "id": product_order.product_id,
+                    "quantity": product_order.quantity
+                },
+                "shipping_price": order.shipping_price
+            }
+            
+        }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
