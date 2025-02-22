@@ -95,6 +95,32 @@ POST /order
 Location: /order/:id
 ```
 
+##### Get order
+```http
+GET /order/<int:order_id>
+```
+
+**Response** `200 OK`
+```json
+{
+  "order": {
+    "credit_card": {},
+    "email": "null",
+    "id": 1,
+    "paid": null,
+    "product": {
+      "id": 1,
+      "quantity": 1
+    },
+    "shipping_information": {},
+    "shipping_price": null,
+    "total_price": null,
+    "total_price_tax": null,
+    "transaction": {}
+  }
+}
+```
+
 ### Status Codes
 
 | Status Code | Description |
@@ -108,3 +134,94 @@ Location: /order/:id
 | 404 | Not Found - Resource not found |
 | 422 | Unprocessable Entity - Entity cannot be processed |
 | 500 | Internal Server Error - Server error |
+
+## 📋 Todo List
+
+### 🛠️ Configuration Initiale
+- [x] Mettre en place l'environnement Python 3.6+
+- [x] Installer les dépendances requises
+  - [x] Flask 1.11+
+  - [x] pytest
+  - [x] pytest-flask
+  - [x] peewee
+- [x] Créer la structure du projet Flask
+- [x] Configurer SQLite3 avec Peewee
+- [x] Implémenter la commande `flask init-db`
+
+### 🔄 Service de Récupération des Produits
+- [x] Implémenter la récupération des produits depuis l'API distante
+  - [x] Connexion à `http://dimensweb.uqac.ca/~jgnault/shops/products/`
+  - [x] Persistance locale des produits dans SQLite
+  - [x] Vérifier que la récupération se fait uniquement au lancement
+
+### 📦 Gestion des Produits (GET /)
+- [x] Implémenter l'endpoint GET / pour lister les produits
+- [x] Assurer le format JSON correct de la réponse
+- [x] Inclure tous les champs requis (name, id, in_stock, description, price, weight, image)
+
+### 🛒 Gestion des Commandes
+#### Création de Commande (POST /order)
+- [x] Implémenter la création de commande
+- [x] Valider les champs obligatoires (product_id, quantity)
+- [x] Gérer les erreurs
+  - [x] Champs manquants
+  - [x] Produit hors stock
+  - [x] Quantité invalide
+- [x] Retourner la redirection 302 avec l'ID de commande
+
+#### Consultation de Commande (GET /order/<id>)
+- [X] Implémenter la consultation de commande
+- [ ] Calculer les prix
+  - [ ] Prix total (total_price)
+  - [ ] Prix avec taxes selon la province
+  - [ ] Frais d'expédition selon le poids
+- [ ] Retourner toutes les informations de la commande
+
+#### Mise à jour des Informations Client (PUT /order/<id>)
+- [ ] Implémenter la mise à jour des informations client
+- [ ] Valider les champs obligatoires
+  - [ ] Email
+  - [ ] Informations d'expédition complètes
+- [ ] Gérer les erreurs de validation
+- [ ] Empêcher la modification des champs protégés
+
+#### Paiement de Commande
+- [ ] Implémenter l'intégration avec le service de paiement distant
+- [ ] Valider la carte de crédit
+  - [ ] Format du numéro
+  - [ ] Date d'expiration
+  - [ ] CVV
+- [ ] Gérer les réponses du service de paiement
+- [ ] Mettre à jour le statut de la commande
+- [ ] Empêcher le double paiement
+
+### 🧪 Tests
+- [ ] Tests unitaires
+  - [ ] Modèles de données
+  - [ ] Logique métier
+- [ ] Tests fonctionnels
+  - [ ] Endpoints API
+  - [ ] Scénarios de commande
+- [ ] Tests d'intégration
+  - [ ] Service de produits
+  - [ ] Service de paiement
+
+### 📝 Documentation
+- [ ] README.md
+  - [ ] Instructions d'installation
+  - [ ] Documentation API
+  - [ ] Exemples d'utilisation
+- [ ] Commentaires dans le code
+- [ ] Documentation des modèles de données
+
+### 🔍 Vérification Finale
+- [ ] Vérifier toutes les exigences techniques
+- [ ] Tester tous les scénarios d'erreur
+- [ ] Valider le format des réponses JSON
+- [ ] Nettoyer et optimiser le code
+- [ ] Vérifier la couverture des tests
+
+---
+*Dates importantes :*
+- 📅 Première remise : 6 mars 2025 (20%)
+- 📅 Remise finale : 17 avril 2025 (30%)
