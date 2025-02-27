@@ -63,7 +63,7 @@ def create_order():
             }}), 422
 
         # Vérifier si quantité négative ou 0
-        if quantity < 1:
+        if product_data.get('quantity') < 1:
             return jsonify({"errors": {
                 "product": {
                     "code": "missing-fields",
