@@ -93,10 +93,17 @@ def create_order():
         # Créer une nouvelle commande et une table de jonction avec le produit
         # TODO: Créer la nouvelle commande avec les paramètres nécessaires
         # total_price, total_price_tax, paid
-        order = Order.create()
+        product = Product.get(Product.id == product_data.get('id'))
+        total_price = product.price * product_data.get('quantity')
+
+        order = Order.create(
+            total_price=total_price,
+            shipping_price=get_shipping_price(product.weight)
+            )
         product_order = ProductOrder.create(
             order=order, product=product_data.get('id'),
-            quantity=product_data.get('quantity'))
+            quantity=product_data.get('quantity')
+            )
 
         return f"Location: /order/{product_order.id}", 302
 
@@ -131,3 +138,22 @@ def get_specific_product(id):
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+def get_taxes_rate(province):
+    taxes = {
+        "QC": 1.15,
+        "ON": 1.13,
+        "BC": 1.12,
+        "AB": 1.05,
+        "NS": 1.14
+    }
+    return taxes.get(province, 0.0)
+
+def get_shipping_price(weight):
+    if weight < 500:
+        return 5.0
+    elif weight < 2000:
+        return 10.0
+    else:
+        return 25.0
