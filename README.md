@@ -165,8 +165,8 @@ GET /order/<int:order_id>
 - [x] Valider les champs obligatoires (product_id, quantity)
 - [x] Gérer les erreurs
   - [x] Champs manquants
-  - [x] Produit hors stock
-  - [x] Quantité invalide
+  - [ ] Produit hors stock
+  - [ ] Quantité invalide
 - [x] Retourner la redirection 302 avec l'ID de commande
 
 #### Consultation de Commande (GET /order/<id>)
