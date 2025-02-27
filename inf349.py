@@ -3,6 +3,7 @@
 from flask import Flask, request, jsonify
 from CustomClass import Product, Order, ProductOrder
 import create_database
+import json
 
 app = Flask(__name__)
 
@@ -116,15 +117,16 @@ def get_specific_product(id):
     try:
         product_order = ProductOrder.get(ProductOrder.order_id == id)
         order = Order.get(Order.id == product_order.order_id)
+        # order["shipping_information"] = json.loads(order.shipping_information)
         return jsonify({
             "order":
             {
                 "id": order.id,
                 "total_price": order.total_price,
                 "total_price_tax": order.total_price_tax,
-                "email": "null",
+                "email": order.email,
                 "credit_card": {},
-                "shipping_information": {},
+                "shipping_information": order.shipping_information,
                 "paid": order.paid,
                 "transaction": {},
                 "product":
@@ -138,6 +140,27 @@ def get_specific_product(id):
         }), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/order/<int:order_id>', methods=['PUT'])
+def update_order(order_id):
+    order = Order.get_or_none(Order.id == order_id)
+    if not order:
+        return jsonify({"error": "Commande introuvable"}), 404
+
+    # data = request.json.get("order", {})
+    data = request.get_json()
+    order_data = data.get("order")
+    shipping_data = order_data.get("shipping_information")
+    if order_data.get("email"):
+        order.email = order_data.get("email")
+    if shipping_data:
+        required_fields = ["country", "address", "postal_code", "city", "province"]
+        # if not all(field in data["shipping_information"] for field in required_fields):
+        #     return jsonify({"errors": {"order": {"code": "missing-fields", "name": "Il manque un ou plusieurs champs obligatoires"}}}), 422
+        order.shipping_information = shipping_data
+
+    order.save()
+    return jsonify({"order": order_data})
 
 
 def get_taxes_rate(province):
