@@ -62,6 +62,13 @@ def create_order():
                 }
             }}), 422
 
+        # Vérifier si quantité négative ou 0
+        if quantity < 1:
+            return jsonify({"errors": {
+                "product": {
+                    "code": "missing-fields",
+                    "name": "Quantité invalide"
+            }}}), 422
         # Vérifier si le produit existe dans la base de données
         try:
             product = Product.get(Product.id == product_data.get('id'))
