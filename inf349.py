@@ -99,7 +99,8 @@ def create_order():
 
         order = Order.create(
             total_price=total_price,
-            shipping_price=get_shipping_price(product.weight)
+            shipping_price=get_shipping_price(product.weight, product_data.get('quantity')),
+            paid=False
             )
         product_order = ProductOrder.create(
             order=order, product=product_data.get('id'),
@@ -117,7 +118,7 @@ def get_specific_product(id):
     try:
         product_order = ProductOrder.get(ProductOrder.order_id == id)
         order = Order.get(Order.id == product_order.order_id)
-        # order["shipping_information"] = json.loads(order.shipping_information)
+
         return jsonify({
             "order":
             {
@@ -126,7 +127,7 @@ def get_specific_product(id):
                 "total_price_tax": order.total_price_tax,
                 "email": order.email,
                 "credit_card": {},
-                "shipping_information": order.shipping_information,
+                "shipping_information": json.loads(order.shipping_information) if order.shipping_information else {},
                 "paid": order.paid,
                 "transaction": {},
                 "product":
@@ -147,17 +148,14 @@ def update_order(order_id):
     if not order:
         return jsonify({"error": "Commande introuvable"}), 404
 
-    # data = request.json.get("order", {})
     data = request.get_json()
     order_data = data.get("order")
-    shipping_data = order_data.get("shipping_information")
+    shipping_data = order_data.get("shipping_information", {})
     if order_data.get("email"):
         order.email = order_data.get("email")
     if shipping_data:
-        required_fields = ["country", "address", "postal_code", "city", "province"]
-        # if not all(field in data["shipping_information"] for field in required_fields):
-        #     return jsonify({"errors": {"order": {"code": "missing-fields", "name": "Il manque un ou plusieurs champs obligatoires"}}}), 422
-        order.shipping_information = shipping_data
+        order.total_price_tax = round(order.total_price * get_taxes_rate(shipping_data.get("province")), 2)
+        order.shipping_information = json.dumps(shipping_data)
 
     order.save()
     return jsonify({"order": order_data})
@@ -173,10 +171,10 @@ def get_taxes_rate(province):
     }
     return taxes.get(province, 0.0)
 
-def get_shipping_price(weight):
-    if weight < 500:
+def get_shipping_price(weight, quantity):
+    if weight * quantity < 500:
         return 5.0
-    elif weight < 2000:
+    elif weight * quantity < 2000:
         return 10.0
     else:
         return 25.0
