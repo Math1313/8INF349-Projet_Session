@@ -46,7 +46,7 @@ def get_all_products():
     return jsonify(products_list), 200
 
 
-# Route pour récupérer un produit par son ID
+# Route pour créer une commande
 @app.route('/order', methods=['POST'])
 def create_order():
     try:
@@ -113,11 +113,12 @@ def create_order():
         return jsonify({"error": str(e)}), 500
 
 
+# Route pour récupérer une commande spécifique
 @app.route('/order/<int:id>', methods=['GET'])
-def get_specific_product(id):
+def get_specific_order(id):
     try:
         product_order = ProductOrder.get(ProductOrder.order_id == id)
-        order = Order.get(Order.id == product_order.order_id)
+        order = Order.get(Order.id == product_order.order_id)            
 
         return jsonify({
             "order":
@@ -140,27 +141,57 @@ def get_specific_product(id):
 
         }), 200
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
-    
+        return jsonify({
+            "errors": {
+                "order": {
+                    "code": "not_found",
+                    "name": "Commande introuvable"
+                }
+            }
+        }), 404
+
+
+# Route pour mettre à jour une commande
 @app.route('/order/<int:order_id>', methods=['PUT'])
 def update_order(order_id):
-    order = Order.get_or_none(Order.id == order_id)
-    if not order:
-        return jsonify({"error": "Commande introuvable"}), 404
+    try:
+        order = Order.get_or_none(Order.id == order_id)
 
-    data = request.get_json()
-    order_data = data.get("order")
-    shipping_data = order_data.get("shipping_information", {})
-    if order_data.get("email"):
+        data = request.get_json()
+        order_data = data.get("order")
+        shipping_data = order_data.get("shipping_information", {})
+
+        required_fields = [
+            shipping_data.get("province"),
+            shipping_data.get("city"),
+            shipping_data.get("address"),
+            shipping_data.get("postal_code"),
+            shipping_data.get("country"),
+            order_data.get("email")
+        ]
+
+        if not all(required_fields):
+            return jsonify({
+                "errors": {
+                    "order": {
+                        "code": "missing_fields",
+                        "name": "Il manque un ou plusieurs champs qui sont obligatoires"
+                    }
+                }
+            }), 422
+        
         order.email = order_data.get("email")
-    if shipping_data:
         order.total_price_tax = round(order.total_price * get_taxes_rate(shipping_data.get("province")), 2)
         order.shipping_information = json.dumps(shipping_data)
 
-    order.save()
-    return jsonify({"order": order_data})
+        order.save()
+        complete_order = get_specific_order(order_id)
+        return complete_order
+    except Exception as e:
+        return jsonify({"error": "Commande introuvable"}), 404
 
 
+# Fonctions utilitaires pour les calculs
 def get_taxes_rate(province):
     taxes = {
         "QC": 1.15,

@@ -56,6 +56,7 @@ GET /
 ```
 
 **Response** `200 OK`
+Content-Type: application/json
 ```json
 [
     {
@@ -80,6 +81,7 @@ POST /order
 ```
 
 **Request Body**
+Content-Type: application/json
 ```json
 {
     "product":
@@ -94,6 +96,57 @@ POST /order
 ```
 Location: /order/:id
 ```
+##### Put order
+```http
+PUT /order/<int:order_id>
+```
+
+**Request Body**
+Content-Type: application/json
+```json
+{ 
+  "order" : { 
+    "email" : "user@uqac.ca", 
+    "shipping_information" : { 
+        "country" : "Canada", 
+        "address" : "201, rue Président-Kennedy", 
+        "postal_code" : "G7X 3Y7", 
+        "city" : "Chicoutimi", 
+        "province" : "QC" 
+    } 
+  } 
+}
+```
+
+**Response** `200 OK`
+Content-Type: application/json
+```json
+{ 
+  "order" : { 
+    "shipping_information" : { 
+        "country" : "Canada", 
+        "address" : "201, rue Président-Kennedy", 
+        "postal_code" : "G7X 3Y7", 
+        "city" : "Chicoutimi", 
+        "province" : "QC" 
+    }, 
+    "credit_card" : {}, 
+    "email" : "user@uqac.ca", 
+    "total_price" : 9148, 
+    "total_price_tax" : 10520.20, 
+    "transaction": {}, 
+    "paid": false, 
+    "product" : { 
+        "id" : 123, 
+        "quantity" : 1 
+    }, 
+    "shipping_price" : 1000, 
+    "id" : 6543 
+  } 
+} 
+```
+
+**Response** `200 OK`
 
 ##### Get order
 ```http
@@ -101,6 +154,7 @@ GET /order/<int:order_id>
 ```
 
 **Response** `200 OK`
+Content-Type: application/json
 ```json
 {
   "order": {
@@ -165,25 +219,25 @@ GET /order/<int:order_id>
 - [x] Valider les champs obligatoires (product_id, quantity)
 - [x] Gérer les erreurs
   - [x] Champs manquants
-  - [ ] Produit hors stock
-  - [ ] Quantité invalide
+  - [x] Produit hors stock
+  - [x] Quantité invalide
 - [x] Retourner la redirection 302 avec l'ID de commande
 
 #### Consultation de Commande (GET /order/<id>)
 - [X] Implémenter la consultation de commande
-- [ ] Calculer les prix
-  - [ ] Prix total (total_price)
-  - [ ] Prix avec taxes selon la province
-  - [ ] Frais d'expédition selon le poids
-- [ ] Retourner toutes les informations de la commande
+- [x] Calculer les prix
+  - [x] Prix total (total_price)
+  - [x] Prix avec taxes selon la province
+  - [x] Frais d'expédition selon le poids
+- [x] Retourner toutes les informations de la commande
 
 #### Mise à jour des Informations Client (PUT /order/<id>)
-- [ ] Implémenter la mise à jour des informations client
-- [ ] Valider les champs obligatoires
-  - [ ] Email
-  - [ ] Informations d'expédition complètes
-- [ ] Gérer les erreurs de validation
-- [ ] Empêcher la modification des champs protégés
+- [x] Implémenter la mise à jour des informations client
+- [x] Valider les champs obligatoires
+  - [x] Email
+  - [x] Informations d'expédition complètes
+- [x] Gérer les erreurs de validation
+- [x] Empêcher la modification des champs protégés
 
 #### Paiement de Commande
 - [ ] Implémenter l'intégration avec le service de paiement distant
