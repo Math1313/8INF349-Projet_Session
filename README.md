@@ -96,7 +96,7 @@ Content-Type: application/json
 ```
 Location: /order/:id
 ```
-##### Put order
+##### Put order (shipping_information)
 ```http
 PUT /order/<int:order_id>
 ```
@@ -145,8 +145,63 @@ Content-Type: application/json
   } 
 } 
 ```
+##### Put order (credit_card & amount_charged)
+```http
+PUT /order/<int:order_id>
+```
+
+**Request Body**
+Content-Type: application/json
+```json
+{ 
+  "credit_card" : { 
+    "name" : "John Doe", 
+    "number" : "4242 4242 4242 4242", 
+    "expiration_year" : 2026, 
+    "cvv" : "123", 
+    "expiration_month" : 9 
+  },
+  "amount_charged": 38.87
+}
+```
 
 **Response** `200 OK`
+Content-Type: application/json
+```json
+{
+  "order": {
+    "credit_card": {
+      "expiration_month": 9,
+      "expiration_year": 2026,
+      "first_digits": "4242",
+      "last_digits": 4242,
+      "name": "John Doe"
+    },
+    "email": "jgnault@uqac.ca",
+    "id": 4,
+    "paid": true,
+    "product": {
+      "id": 2,
+      "quantity": 1
+    },
+    "shipping_information": {
+      "address": "201, rue Président-Kennedy",
+      "city": "Chicoutimi",
+      "country": "Canada",
+      "postal_code": "G7X 3Y7",
+      "province": "QC"
+    },
+    "shipping_price": 5.0,
+    "total_price": 29.45,
+    "total_price_tax": 33.87,
+    "transaction": {
+      "amount_charged": 38.87,
+      "id": "RNBqiliect72GsZn8CJ1",
+      "success": "true"
+    }
+  }
+}
+```
 
 ##### Get order
 ```http
@@ -240,14 +295,13 @@ Content-Type: application/json
 - [x] Empêcher la modification des champs protégés
 
 #### Paiement de Commande
-- [ ] Implémenter l'intégration avec le service de paiement distant
-- [ ] Valider la carte de crédit
-  - [ ] Format du numéro
-  - [ ] Date d'expiration
-  - [ ] CVV
-- [ ] Gérer les réponses du service de paiement
-- [ ] Mettre à jour le statut de la commande
-- [ ] Empêcher le double paiement
+- [x] Implémenter l'intégration avec le service de paiement distant
+- [x] Valider la carte de crédit
+  - [x] Format du numéro
+  - [x] Date d'expiration
+- [x] Gérer les réponses du service de paiement
+- [x] Mettre à jour le statut de la commande
+- [x] Empêcher le double paiement
 
 ### 🧪 Tests
 - [ ] Tests unitaires
