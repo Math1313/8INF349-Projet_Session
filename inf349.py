@@ -3,7 +3,7 @@
 from flask import Flask, request, jsonify
 from CustomClass import Product, Order, ProductOrder
 import create_database
-import json
+import json, requests
 
 app = Flask(__name__)
 
@@ -56,40 +56,21 @@ def create_order():
 
         # Vérifier si les données sont valides (présence des champs)
         if not product_data or not product_data.get('id') or not product_data.get('quantity'):
-            return jsonify({"errors": {
-                "product": {
-                    "code": "missing_fields",
-                    "name": "La création d'une commande nécessite un produit."
-                }
-            }}), 422
+            return return_error("missing-fields", "La création d'une commande nécessite un produit", 422)
 
         # Vérifier si quantité négative ou 0
         if product_data.get('quantity') < 1:
-            return jsonify({"errors": {
-                "product": {
-                    "code": "missing-fields",
-                    "name": "Quantité invalide"
-            }}}), 422
+            return return_error("missing-fields", "Quantité invalide", 422)
         # Vérifier si le produit existe dans la base de données
         try:
             product = Product.get(Product.id == product_data.get('id'))
             # Vérifier si le produit est en inventaire
             print(product.in_stock)
             if not product.in_stock:
-                return jsonify({"errors": {
-                    "product": {
-                        "code": "out-of-inventory",
-                        "name": "Le produit demandé n'est pas en inventaire."
-                    }
-                }}), 422
+                return return_error("out-of-inventory", "Le produit demandé n'est pas en inventaire", 422)
         except Exception:
             # Retourner une erreur si le produit n'existe pas
-            return jsonify({"errors": {
-                "product": {
-                    "code": "not_found",
-                    "name": "Le produit n'existe pas."
-                }
-            }}), 422
+            return return_error("not_found", "Le produit n'existe pas", 404)
 
         # Créer une nouvelle commande et une table de jonction avec le produit
         # TODO: Créer la nouvelle commande avec les paramètres nécessaires
@@ -127,10 +108,10 @@ def get_specific_order(id):
                 "total_price": order.total_price,
                 "total_price_tax": order.total_price_tax,
                 "email": order.email,
-                "credit_card": {},
+                "credit_card": json.loads(order.credit_card) if order.credit_card else {},
                 "shipping_information": json.loads(order.shipping_information) if order.shipping_information else {},
                 "paid": order.paid,
-                "transaction": {},
+                "transaction": json.loads(order.transaction) if order.transaction else {},
                 "product":
                 {
                     "id": product_order.product_id,
@@ -141,26 +122,100 @@ def get_specific_order(id):
 
         }), 200
     except Exception as e:
-        return jsonify({
-            "errors": {
-                "order": {
-                    "code": "not_found",
-                    "name": "Commande introuvable"
-                }
-            }
-        }), 404
+        return return_error ("not_found", "Commande introuvable", 404)
 
 
 # Route pour mettre à jour une commande
 @app.route('/order/<int:order_id>', methods=['PUT'])
 def update_order(order_id):
     try:
+        # Récupérer les informations de la commandes
         order = Order.get_or_none(Order.id == order_id)
+        if not order:
+            return return_error("not_found", "Commande introuvable", 404)
 
+        if order.paid:
+            return return_error("already-paid", "La commande a déjà été payée", 422)
         data = request.get_json()
-        order_data = data.get("order")
-        shipping_data = order_data.get("shipping_information", {})
+        
+        # Vérifier si l'update doit mettre à jour les informations de paiement
+        if "credit_card" in data and data.get("amount_charged"):
+            if not order.shipping_information:
+                return return_error("missing_shipping",
+                                    "Les informations d'expédition sont requises avant d'ajouter une carte de crédit",
+                                    422)
 
+            credit_card = data["credit_card"]
+            
+            required_cc_fields = [
+                credit_card.get("name"),
+                credit_card.get("number"),
+                credit_card.get("expiration_year"),
+                credit_card.get("expiration_month"),
+                credit_card.get("cvv"),
+                data.get("amount_charged")
+            ]
+
+            # Valider que tous les champs de la carte de crédit sont présents
+            if not all(required_cc_fields):
+                return return_error("missing_fields", "Information de carte de crédit incomplète", 422)
+            
+            # Valider que le CVV est une chaîne de 3 chiffres
+            if not isinstance(credit_card.get("cvv"), str) or not credit_card.get("cvv").isdigit() or len(credit_card.get("cvv")) != 3:
+                return return_error("invalid-cvv", "Le CVV doit être une chaîne de 3 chiffres", 422)
+
+            # Valider que l'année et le mois sont des entiers
+            if not isinstance(credit_card.get("expiration_year"), int) or not isinstance(credit_card.get("expiration_month"), int):
+                return return_error("invalid-expiration-date", "L'année et le mois d'expiration doit être un nombre entier", 422)
+                
+            # Valider que le montant chargé est un nombre décimal
+            if not isinstance(data.get("amount_charged"), (float, int)):
+                return return_error("invalid-amount", "Le montant doit être un nombre décimal", 422)
+            
+            if order.total_price_tax + order.shipping_price != data["amount_charged"]:
+                return return_error("invalid-amount", "Le montant payé doit être égal au total de la commande", 422)
+
+            # Faire une requête de paiement à l'API externe
+            try:
+                payment_response = requests.post(
+                    'https://dimensweb.uqac.ca/~jgnault/shops/pay/',
+                    json={
+                        "credit_card": credit_card,
+                        "amount_charged": data["amount_charged"]
+                    },
+                    headers={"Content-Type": "application/json"}
+                )
+                payment_data = payment_response.json()
+                
+                # Valider les erreurs si le paiement a échoué
+                if payment_data.get("errors"):
+                    # Retourner une erreur si le numéro de la carte de crédit est invalide
+                    if payment_data.get("errors").get("credit_card").get("code") == "card-invalid":
+                        return return_error("card-declined", "La carte de crédit a été déclinée", 422)
+                    
+                    # Retourner une erreur si la carte de crédit est expirée
+                    elif payment_data.get("errors").get("credit_card").get("code") == "card-expired":
+                        return return_error("card-expired", "La carte de crédit est expirée", 422)
+                
+                # Enregistrer les informations de paiement
+                order.credit_card = json.dumps(payment_data["credit_card"])
+                order.transaction = json.dumps(payment_data["transaction"])
+                order.paid = payment_data["transaction"]["success"]
+                order.save()
+                
+                # Retourner les informations de la commande
+                return get_specific_order(order_id)
+
+            # Retourner une erreur si le paiement a échoué    
+            except Exception as e:
+                return return_error("payment_error", "Erreur lors du traitement du paiement", 500)
+
+        # Vérifier si l'update doit mettre à jour les informations d'expédition
+        order_data = data.get("order")
+        if not order_data:
+            return return_error("missing_fields", "Les données de commande sont requises", 422)
+
+        shipping_data = order_data.get("shipping_information", {})
         required_fields = [
             shipping_data.get("province"),
             shipping_data.get("city"),
@@ -170,23 +225,20 @@ def update_order(order_id):
             order_data.get("email")
         ]
 
+        # Valider que tous les champs de l'expédition sont présents
         if not all(required_fields):
-            return jsonify({
-                "errors": {
-                    "order": {
-                        "code": "missing_fields",
-                        "name": "Il manque un ou plusieurs champs qui sont obligatoires"
-                    }
-                }
-            }), 422
+            return return_error("missing_fields", "Il manque un ou plusieurs champs qui sont obligatoires", 422)
         
+        # Mettre à jour les informations de la commande
         order.email = order_data.get("email")
         order.total_price_tax = round(order.total_price * get_taxes_rate(shipping_data.get("province")), 2)
         order.shipping_information = json.dumps(shipping_data)
-
         order.save()
-        complete_order = get_specific_order(order_id)
-        return complete_order
+        
+        return get_specific_order(order_id)
+
+    # Retourner une erreur si la commande n'existe pas
+    # Ce bloc attrapera toutes les autres erreurs potentielles qui ne sont pas gérées
     except Exception as e:
         return jsonify({"error": "Commande introuvable"}), 404
 
@@ -209,3 +261,13 @@ def get_shipping_price(weight, quantity):
         return 10.0
     else:
         return 25.0
+
+def return_error(error_code, error_name, http_code):
+    return jsonify({
+        "errors": {
+            "order": {
+                "code": error_code,
+                "name": error_name
+            }
+        }
+    }), http_code
