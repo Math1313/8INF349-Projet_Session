@@ -1,6 +1,6 @@
 # inf349.py
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from CustomClass import Product, Order, ProductOrder
 import create_database
 import json, requests
@@ -43,7 +43,7 @@ def get_all_products():
     ]
 
     # Retourner les données en JSON
-    return jsonify(products_list), 200
+    return jsonify({"products": products_list}), 200
 
 
 # Route pour créer une commande
@@ -88,7 +88,10 @@ def create_order():
             quantity=product_data.get('quantity')
             )
 
-        return f"Location: /order/{product_order.id}", 302
+        response = make_response(jsonify({}))  # ou jsonify({"message": "created"})
+        response.status_code = 302
+        response.headers["Location"] = f"/order/{product_order.id}"
+        return response
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -196,6 +199,9 @@ def update_order(order_id):
                     # Retourner une erreur si la carte de crédit est expirée
                     elif payment_data.get("errors").get("credit_card").get("code") == "card-expired":
                         return return_error("card-expired", "La carte de crédit est expirée", 422)
+                    # Retourner une erreur si la carte de crédit est déclinée
+                    elif payment_data.get("errors").get("credit_card").get("code") == "card-declined":
+                        return return_error("card-declined", "La carte de crédit a été déclinée", 422)
                 
                 # Enregistrer les informations de paiement
                 order.credit_card = json.dumps(payment_data["credit_card"])

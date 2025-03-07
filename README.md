@@ -39,6 +39,11 @@ Windows:
 ```powershell
 $env:FLASK_DEBUG = "True"; $env:FLASK_APP = "inf349"; flask run
 ```
+### Launch Flask tests
+
+```powershell & linux
+python -m pytest -v
+
 ## 📂 API Documentation
 
 ### Base URL
@@ -161,7 +166,7 @@ Content-Type: application/json
     "cvv" : "123", 
     "expiration_month" : 9 
   },
-  "amount_charged": 38.87
+  "amount_charged": 32.31
 }
 ```
 
