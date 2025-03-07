@@ -39,12 +39,12 @@ Windows:
 ```powershell
 $env:FLASK_DEBUG = "True"; $env:FLASK_APP = "inf349"; flask run
 ```
-### Launch Flask tests
+### Lunch Flask tests
 
 ```powershell & linux
 python -m pytest -v
-
-## 📂 API Documentation
+```
+### 📂 API Documentation
 
 ### Base URL
 ```
