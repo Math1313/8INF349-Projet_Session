@@ -3,3 +3,4 @@ pytest
 pytest-flask
 peewee
 requests # Paquet utilitaire pour importer des données directement
+
