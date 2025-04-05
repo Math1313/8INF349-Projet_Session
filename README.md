@@ -1,5 +1,11 @@
 # 8INF349-Projet_Session
 Projet de session du cours de Technologies Web Avancées - 8INF349
+'''
+# realiser par 
+ - Mathis Audusseau
+ - Mathis Gauthier 
+ - Zhakael Bondu
+
 ## 🐍 Environment Setup
 ### 1. Install Python 3.13
 ### 2. Create virtual environment
@@ -39,12 +45,12 @@ Windows:
 ```powershell
 $env:FLASK_DEBUG = "True"; $env:FLASK_APP = "inf349"; flask run
 ```
-### Launch Flask tests
+### Lunch Flask tests
 
 ```powershell & linux
 python -m pytest -v
-
-## 📂 API Documentation
+```
+### 📂 API Documentation
 
 ### Base URL
 ```
