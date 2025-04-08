@@ -80,7 +80,7 @@ Content-Type: application/json
         "price": 28.1,
         "weight": 400
     },
-    ...
+    "..."
 ]
 ```
 
@@ -97,7 +97,7 @@ Content-Type: application/json
 {
     "product":
     {
-        "id": 1
+        "id": 1,
         "quantity": 1 
     }
 }
