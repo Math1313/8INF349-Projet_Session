@@ -27,218 +27,30 @@ pip install -r requirements.txt
 ```
 
 ## 🚀 Execute API
-### Create Database
-Linux:
+### Execute Docker compose 
 ```bash
-FLASK_DEBUG=True FLASK_APP=inf349 flask init-db
+docker-compose up -d --build
 ```
-Windows:
-```powershell
-$env:FLASK_DEBUG = "True"; $env:FLASK_APP = "inf349"; flask init-db
-```
-### Launch Flask App
-Linux:
+### Initialiser la base de données
 ```bash
-FLASK_DEBUG=True FLASK_APP=inf349 flask run
+docker-compose exec app flask init-db
 ```
-Windows:
-```powershell
-$env:FLASK_DEBUG = "True"; $env:FLASK_APP = "inf349"; flask run
+
+### URl D'acces
+
+http://127.0.0.1:5000 pour la liste des produits
+
+http://127.0.0.1:5000/index pour notre page HTML de test
+
+### Stop Docker compose
+```bash
+docker-compose down  
 ```
+
 ### Lunch Flask tests
 
 ```powershell & linux
 python -m pytest -v
-```
-### 📂 API Documentation
-
-### Base URL
-```
-http://127.0.0.1:5000/
-```
-
-### Endpoints
-
-#### 🧰 Product
-
-##### Get all products
-```http
-GET /
-```
-
-**Response** `200 OK`
-Content-Type: application/json
-```json
-[
-    {
-        "description": "Raw organic brown eggs in a basket",
-        "height": 600,
-        "id": 1,
-        "image": "0.jpg",
-        "in_stock": true,
-        "name": "Brown eggs",
-        "price": 28.1,
-        "weight": 400
-    },
-    "..."
-]
-```
-
-#### 📝 Orders
-
-##### Create order
-```http
-POST /order
-```
-
-**Request Body**
-Content-Type: application/json
-```json
-{
-    "product":
-    {
-        "id": 1,
-        "quantity": 1 
-    }
-}
-```
-
-**Response** `302 Found`
-```
-Location: /order/:id
-```
-##### Put order (shipping_information)
-```http
-PUT /order/<int:order_id>
-```
-
-**Request Body**
-Content-Type: application/json
-```json
-{ 
-  "order" : { 
-    "email" : "user@uqac.ca", 
-    "shipping_information" : { 
-        "country" : "Canada", 
-        "address" : "201, rue Président-Kennedy", 
-        "postal_code" : "G7X 3Y7", 
-        "city" : "Chicoutimi", 
-        "province" : "QC" 
-    } 
-  } 
-}
-```
-
-**Response** `200 OK`
-Content-Type: application/json
-```json
-{ 
-  "order" : { 
-    "shipping_information" : { 
-        "country" : "Canada", 
-        "address" : "201, rue Président-Kennedy", 
-        "postal_code" : "G7X 3Y7", 
-        "city" : "Chicoutimi", 
-        "province" : "QC" 
-    }, 
-    "credit_card" : {}, 
-    "email" : "user@uqac.ca", 
-    "total_price" : 9148, 
-    "total_price_tax" : 10520.20, 
-    "transaction": {}, 
-    "paid": false, 
-    "product" : { 
-        "id" : 123, 
-        "quantity" : 1 
-    }, 
-    "shipping_price" : 1000, 
-    "id" : 6543 
-  } 
-} 
-```
-##### Put order (credit_card & amount_charged)
-```http
-PUT /order/<int:order_id>
-```
-
-**Request Body**
-Content-Type: application/json
-```json
-{ 
-  "credit_card" : { 
-    "name" : "John Doe", 
-    "number" : "4242 4242 4242 4242", 
-    "expiration_year" : 2026, 
-    "cvv" : "123", 
-    "expiration_month" : 9 
-  },
-  "amount_charged": 32.31
-}
-```
-
-**Response** `200 OK`
-Content-Type: application/json
-```json
-{
-  "order": {
-    "credit_card": {
-      "expiration_month": 9,
-      "expiration_year": 2026,
-      "first_digits": "4242",
-      "last_digits": 4242,
-      "name": "John Doe"
-    },
-    "email": "jgnault@uqac.ca",
-    "id": 4,
-    "paid": true,
-    "product": {
-      "id": 2,
-      "quantity": 1
-    },
-    "shipping_information": {
-      "address": "201, rue Président-Kennedy",
-      "city": "Chicoutimi",
-      "country": "Canada",
-      "postal_code": "G7X 3Y7",
-      "province": "QC"
-    },
-    "shipping_price": 5.0,
-    "total_price": 29.45,
-    "total_price_tax": 33.87,
-    "transaction": {
-      "amount_charged": 38.87,
-      "id": "RNBqiliect72GsZn8CJ1",
-      "success": "true"
-    }
-  }
-}
-```
-
-##### Get order
-```http
-GET /order/<int:order_id>
-```
-
-**Response** `200 OK`
-Content-Type: application/json
-```json
-{
-  "order": {
-    "credit_card": {},
-    "email": "null",
-    "id": 1,
-    "paid": null,
-    "product": {
-      "id": 1,
-      "quantity": 1
-    },
-    "shipping_information": {},
-    "shipping_price": null,
-    "total_price": null,
-    "total_price_tax": null,
-    "transaction": {}
-  }
-}
 ```
 
 ### Status Codes
