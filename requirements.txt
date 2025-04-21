@@ -1,6 +1,19 @@
+# Flask framework et dépendances de base
 flask
+
+# ORM Peewee
+peewee
+
+# Pour exécuter nos tests unitaires
 pytest
 pytest-flask
-peewee
-requests # Paquet utilitaire pour importer des données directement
 
+# Pour effectuer des requêtes HTTP (ex: récupérer les produits, ou le paiement)
+requests
+
+# Pour la gestion de la connexion à PostgreSQL
+psycopg2-binary
+
+# Pour Redis + RQ (mise en cache et tâches asynchrones)
+redis
+rq==2.3.1

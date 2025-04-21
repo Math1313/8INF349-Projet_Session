@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # 1) Service de l'application Flask
+  app:
+    build: .             # Construit l'image à partir du Dockerfile à la racine
+    container_name: flask-app
+    environment:
+      - FLASK_APP=inf349
+      - FLASK_DEBUG=True
+      - DB_HOST=postgres          
+      - DB_USER=user
+      - DB_PASSWORD=pass
+      - DB_PORT=5432
+      - DB_NAME=api8inf349
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - .:/app                   # Monte le code local dans /app si tu veux du hot-reload
+    ports:
+      - '5000:5000'
+    depends_on:
+      - postgres
+      - redis
+    command: flask run --host=0.0.0.0
+
+  # 2) Service du worker RQ 
+  worker:
+    build: .
+    container_name: flask-worker
+    environment:
+      - FLASK_APP=inf349
+      - FLASK_DEBUG=True
+      - DB_HOST=postgres
+      - DB_USER=user
+      - DB_PASSWORD=pass
+      - DB_PORT=5432
+      - DB_NAME=api8inf349
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    command: flask worker        # Lance la commande "flask worker"
+
+  # 3) Service Postgres 12
+  postgres:
+    image: postgres:12
+    container_name: my-postgres
+    environment:
+      POSTGRES_DB: api8inf349
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  # 4) Service Redis 5
+  redis:
+    image: redis:5
+    container_name: my-redis
+    ports:
+      - "6379:6379"
+
+# Définition du volume pour persister les données Postgres
+volumes:
+  postgres_data:

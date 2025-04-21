@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Test 8INF349</title>
+</head>
+<body>
+<h1>Page de test pour l'API</h1>
+
+<!-- Section 1 : Liste des produits -->
+<section style="border:1px solid #ddd; padding:10px; margin:10px;">
+    <h2>1) Lister les produits (GET /)</h2>
+    <button onclick="getProducts()">Get Products</button>
+    <pre id="productsOutput"></pre>
+</section>
+
+<!-- Section 2 : Créer une commande (POST /order) -->
+<section style="border:1px solid #ddd; padding:10px; margin:10px;">
+    <h2>2) Créer une commande</h2>
+    <p>Pour tester la création avec un seul produit <code>{"product": {...}}</code></p>
+    <label>ID Produit : <input type="number" id="prodId" value="1"></label>
+    <label>Quantité : <input type="number" id="prodQty" value="1"></label>
+    <button onclick="createSingleProductOrder()">Créer (single product)</button>
+    <pre id="createSingleOutput"></pre>
+
+    <hr>
+    <p>Pour tester la création avec plusieurs produits <code>{"products":[...]} </code>:</p>
+    <textarea id="multiJson" rows="6" cols="60">
+{
+  "products": [
+    { "id": 123, "quantity": 2 },
+    { "id": 321, "quantity": 1 }
+  ]
+}
+    </textarea>
+    <br>
+    <button onclick="createMultiProductOrder()">Créer (multi products)</button>
+    <pre id="createMultiOutput"></pre>
+</section>
+
+<!-- Section 3 : Consultation de commande (GET /order/<id>) -->
+<section style="border:1px solid #ddd; padding:10px; margin:10px;">
+    <h2>3) Consulter une commande</h2>
+    <label>ID Commande : <input type="number" id="orderIdGet" value="1"></label>
+    <button onclick="getOrder()">Get /order/id </button>
+    <pre id="getOrderOutput"></pre>
+</section>
+
+<!-- Section 4 : Mise à jour infos shipping (PUT /order/<id>) -->
+<section style="border:1px solid #ddd; padding:10px; margin:10px;">
+    <h2>4) Mettre à jour la commande (infos shipping)</h2>
+    <label>ID Commande : <input type="number" id="orderIdShipping" value="1"></label>
+    <p>
+      <textarea id="shippingJson" rows="8" cols="60">
+{
+  "order": {
+    "email": "user@uqac.ca",
+    "shipping_information": {
+      "country": "Canada",
+      "address": "201, rue Président-Kennedy",
+      "postal_code": "G7X 3Y7",
+      "city": "Chicoutimi",
+      "province": "QC"
+    }
+  }
+}
+      </textarea>
+    </p>
+    <button onclick="updateShipping()">PUT /order/id </button>
+    <pre id="shippingOutput"></pre>
+</section>
+
+<!-- Section 5 : Paiement (PUT /order/<id>) -->
+<section style="border:1px solid #ddd; padding:10px; margin:10px;">
+    <h2>5) Payer la commande (Credit Card)</h2>
+    <label>ID Commande : <input type="number" id="orderIdPay" value="1"></label>
+    <p>
+      <textarea id="paymentJson" rows="8" cols="60">
+{
+  "credit_card": {
+    "name": "John Doe",
+    "number": "4242 4242 4242 4242",
+    "expiration_year": 2026,
+    "expiration_month": 9,
+    "cvv": "123"
+  },
+  "amount_charged": 100
+}
+      </textarea>
+    </p>
+    <button onclick="updatePayment()">PUT /order/id </button>
+    <pre id="paymentOutput"></pre>
+</section>
+
+<script>
+    const baseUrl = "http://127.0.0.1:5000";
+    // Ajuste si besoin pour pointer sur ton backend
+
+    // 1) GET /
+    async function getProducts() {
+        let response = await fetch(baseUrl + "/", {
+            method: "GET"
+        });
+        let data = await response.json();
+        document.getElementById("productsOutput").innerText = JSON.stringify(data, null, 2)
+            + "\nStatus: " + response.status;
+    }
+
+    // 2a) POST /order (single product)
+    async function createSingleProductOrder() {
+        let prodId = document.getElementById("prodId").value;
+        let prodQty = document.getElementById("prodQty").value;
+
+        let body = {
+            "product": {
+                "id": parseInt(prodId),
+                "quantity": parseInt(prodQty)
+            }
+        };
+
+        let response = await fetch(baseUrl + "/order", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(body)
+        });
+        let text = await response.text();
+        document.getElementById("createSingleOutput").innerText = text + "\nStatus: " + response.status
+            + "\nLocation: " + response.headers.get("Location");
+    }
+
+    // 2b) POST /order (multiple products)
+    async function createMultiProductOrder() {
+        let raw = document.getElementById("multiJson").value;
+
+        let response = await fetch(baseUrl + "/order", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: raw
+        });
+        let text = await response.text();
+        document.getElementById("createMultiOutput").innerText = text + "\nStatus: " + response.status
+            + "\nLocation: " + response.headers.get("Location");
+    }
+
+    // 3) GET /order/<id>
+    async function getOrder() {
+        let orderId = document.getElementById("orderIdGet").value;
+        let response = await fetch(baseUrl + "/order/" + orderId, {
+            method: "GET"
+        });
+        if (response.status === 202) {
+            // En cours de paiement
+            document.getElementById("getOrderOutput").innerText = "La commande est en cours de paiement (202)\n";
+            return;
+        }
+        else if (response.status === 200) {
+            let data = await response.json();
+            document.getElementById("getOrderOutput").innerText = JSON.stringify(data, null, 2)
+                + "\nStatus: " + response.status;
+        }
+        else {
+            let text = await response.text();
+            document.getElementById("getOrderOutput").innerText = text + "\nStatus: " + response.status;
+        }
+    }
+
+    // 4) PUT /order/<id> (shipping)
+    async function updateShipping() {
+        let orderId = document.getElementById("orderIdShipping").value;
+        let raw = document.getElementById("shippingJson").value;
+
+        let response = await fetch(baseUrl + "/order/" + orderId, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: raw
+        });
+        let text = await response.text();
+        document.getElementById("shippingOutput").innerText = text + "\nStatus: " + response.status;
+    }
+
+    // 5) PUT /order/<id> (payment)
+    async function updatePayment() {
+        let orderId = document.getElementById("orderIdPay").value;
+        let raw = document.getElementById("paymentJson").value;
+
+        let response = await fetch(baseUrl + "/order/" + orderId, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: raw
+        });
+        let text = await response.text();
+        document.getElementById("paymentOutput").innerText = text + "\nStatus: " + response.status;
+    }
+</script>
+</body>
+</html>
