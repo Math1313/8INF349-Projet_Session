@@ -4,6 +4,7 @@ from peewee import DoesNotExist
 from rq import Queue
 from CustomClass import db, Order, ProductOrder
 from config import redis_client
+import time
 
 # On crée la queue "default" en spécifiant la connexion redis
 queue = Queue('default', connection=redis_client)
@@ -15,6 +16,10 @@ def do_payment(order_id, credit_card, amount_charged):
     try:
         db.connect(reuse_if_open=True)
         order = Order.get_by_id(order_id)
+
+              # Ajouter un délai de 5 secondes pour simuler le temps de traitement du paiement.
+        time.sleep(5)
+
 
         payment_response = requests.post(
             'https://dimensweb.uqac.ca/~jgnault/shops/pay/',

@@ -120,7 +120,7 @@ def create_order():
         if products_array:
             # Valider qu'il n'est pas vide
             if not isinstance(products_array, list) or len(products_array) == 0:
-                return return_error("missing-fields", "Aucun produit spécifié", 422)
+                return return_error("missing-fields", "Aucun produit specifie", 422)
 
             # Calculer total_price et shipping
             total_price = 0
@@ -216,7 +216,7 @@ def get_specific_order(id):
         return return_error("not_found", "Commande introuvable", 404)
     # S'il est IN_PROGRESS, on renvoie 202 Accepted (vide)
     if order.payment_status == "IN_PROGRESS":
-        return make_response("", 202)
+        return make_response("payment en cours ", 202)
 
     # Sélectionner tous les ProductOrder de cette commande
     product_orders = ProductOrder.select().where(ProductOrder.order == order.id)
@@ -259,7 +259,7 @@ def update_order(order_id):
 
         # Si la commande est déjà payée, on ne peut plus la modifier
         if order.paid:
-            return return_error("already-paid", "La commande a déjà été payée", 422)
+            return return_error("already-paid", "La commande a deja ete payee", 422)
 
         data = request.get_json()
 
@@ -267,7 +267,7 @@ def update_order(order_id):
         if "credit_card" in data and data.get("amount_charged"):
             # Vérifier que la commande n'est pas déjà en cours de paiement
             if order.payment_status == "IN_PROGRESS":
-                return return_error("conflict", "Commande déjà en cours de paiement", 409)
+                return return_error("conflict", "Commande dejà en cours de paiement", 409)
 
             # Vérifier que les infos d'expédition existent déjà
             if not order.shipping_information:
@@ -289,7 +289,7 @@ def update_order(order_id):
                 amount_charged
             ]
             if not all(required_cc_fields):
-                return return_error("missing_fields", "Information de carte de crédit incomplète", 422)
+                return return_error("missing_fields", "Information de carte de crédit incomplete", 422)
 
             # (Même validations que tu faisais avant)
             if not isinstance(credit_card.get("cvv"), str) or len(credit_card.get("cvv")) != 3:
@@ -299,7 +299,7 @@ def update_order(order_id):
 
             # Vérifier que (total_price_tax + shipping_price) == amount_charged
             if order.total_price_tax + order.shipping_price != amount_charged:
-                return return_error("invalid-amount", "Le montant payé doit être égal au total de la commande", 422)
+                return return_error("invalid-amount", "Le montant paye doit être égal au total de la commande", 422)
 
             # 2) Marquer la commande en cours de paiement
             order.payment_status = "IN_PROGRESS"
